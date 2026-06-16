@@ -11,6 +11,7 @@ type FoodLocation = 'tray' | PlateId;
 type Stage1State = {
   selected: FoodId | null;
   foodLocation: Record<FoodId, FoodLocation>;
+  sourcePlate: Record<FoodId, PlateId | null>;
   reaction: Record<PlateId, 'idle' | 'confused' | 'happy'>;
   completed: boolean;
 };
@@ -45,12 +46,25 @@ export function createStage1(): StageModule {
     const plateButton = target.closest<HTMLElement>('[data-plate]');
 
     if (foodButton) {
-      selectFood(foodButton.dataset.food as FoodId);
+      const foodId = foodButton.dataset.food as FoodId;
+      const location = state.foodLocation[foodId];
+
+      if (state.selected && location !== 'tray') {
+        placeSelectedFood(location as PlateId);
+      } else {
+        selectFood(foodId);
+      }
       return;
     }
 
-    if (plateButton && state.selected) {
-      placeSelectedFood(plateButton.dataset.plate as PlateId);
+    if (plateButton) {
+      if (state.selected) {
+        placeSelectedFood(plateButton.dataset.plate as PlateId);
+      } else {
+        const plate = plateButton.dataset.plate as PlateId;
+        const foodOnPlate = getFoodOnPlate(plate);
+        if (foodOnPlate) selectFood(foodOnPlate);
+      }
     }
   }
 
@@ -69,10 +83,10 @@ export function createStage1(): StageModule {
     const occupyingFood = getFoodOnPlate(plate, selected);
 
     state.foodLocation[selected] = plate;
+    state.sourcePlate[selected] = null;
 
     if (occupyingFood) {
-      // Regla de reemplazo: la comida que estaba en ese plato no desaparece;
-      // vuelve a quedar seleccionada para que la jugadora la mande al otro plato.
+      state.sourcePlate[occupyingFood] = plate;
       state.foodLocation[occupyingFood] = 'tray';
       state.selected = occupyingFood;
     } else {
@@ -85,8 +99,6 @@ export function createStage1(): StageModule {
     if (bothCorrect) {
       state.completed = true;
       window.setTimeout(() => ctx?.emit(GAME_EVENTS.STAGE1_COMPLETE), 900);
-      // Temporal durante Stage 1 aislado: queda logueado en consola.
-      // Cuando exista Stage 2, el stage-manager escuchará este evento y hará goTo('stage2').
       console.info('[Stage1] complete');
     }
 
@@ -149,10 +161,15 @@ export function createStage1(): StageModule {
     for (const food of Object.keys(state.foodLocation) as FoodId[]) {
       const node = container.querySelector<HTMLElement>(`[data-food="${food}"]`);
       if (!node) continue;
-      node.classList.toggle('is-selected', state.selected === food);
-      node.dataset.location = state.foodLocation[food];
-      node.setAttribute('aria-pressed', String(state.selected === food));
-      node.setAttribute('aria-label', `${FOOD_LABEL[food]} ${state.selected === food ? 'seleccionada' : ''}`.trim());
+      const isSelected = state.selected === food;
+      const actualLocation = state.foodLocation[food];
+      const visualLocation = isSelected && actualLocation === 'tray' && state.sourcePlate[food]
+        ? state.sourcePlate[food]!
+        : actualLocation;
+      node.classList.toggle('is-selected', isSelected);
+      node.dataset.location = visualLocation;
+      node.setAttribute('aria-pressed', String(isSelected));
+      node.setAttribute('aria-label', `${FOOD_LABEL[food]} ${isSelected ? 'seleccionada' : ''}`.trim());
     }
 
     const dog = container.querySelector<HTMLElement>('[data-animal="dog"]');
@@ -169,6 +186,7 @@ function createInitialState(): Stage1State {
   return {
     selected: null,
     foodLocation: { bone: 'tray', chicken: 'tray' },
+    sourcePlate: { bone: null, chicken: null },
     reaction: { dog: 'idle', cat: 'idle' },
     completed: false
   };

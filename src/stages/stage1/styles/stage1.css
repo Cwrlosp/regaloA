@@ -84,6 +84,8 @@
 }
 .s1-food-chicken::after { content: ''; position: absolute; left: 54%; top: 58%; width: 28%; height: 12%; background: #F0D7A1; transform: rotate(38deg); }
 .s1-food.is-selected { transform: translateY(-8px) scale(1.06); filter: drop-shadow(0 0 12px rgba(255, 245, 230, 0.9)); }
+.s1-food.is-selected[data-location="dog"],
+.s1-food.is-selected[data-location="cat"] { transform: translateY(-8px) scale(1.06); z-index: 4; }
 .s1-food[data-location="dog"] { left: calc(39% + 12px); right: auto; bottom: 17%; transform: none; z-index: 3; }
 .s1-food[data-location="cat"] { left: auto; right: calc(39% + 12px); bottom: 17%; transform: none; z-index: 3; }
 .s1-hint { position: absolute; left: 50%; top: max(14px, env(safe-area-inset-top)); transform: translateX(-50%); margin: 0; color: rgba(255,245,230,0.84); font-size: clamp(0.84rem, 2.5vw, 1rem); letter-spacing: 0.02em; text-align: center; }
