@@ -1,0 +1,33 @@
+:root {
+  --font-main: Poppins, Quicksand, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-ceremony: cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  --bts-purple: #6B3FA0;
+  --lavender: #B388FF;
+  --bts-blue: #5D9CEC;
+  --pink: #FF8A9E;
+  --mint: #7BC67E;
+  --gold: #FFD700;
+  --coral: #FF6B6B;
+  --cream-50: #FFF5E6;
+  --night-900: #0D0221;
+  --twilight-900: #1A0B2E;
+  --twilight-700: #4A154B;
+
+  --dog-shadow: #7A3E17;
+  --dog-base: #B3622D;
+  --dog-mid: #D28546;
+  --dog-light: #EAA869;
+  --dog-hi: #F3C698;
+  --cat-stripe: #2A2A2A;
+  --cat-dark: #6D6A65;
+  --cat-light: #B8B4A9;
+  --cat-cream: #EAE6DC;
+  --cat-eye: #A3C985;
+  --cat-nose: #C87A6B;
+  --food-bone: #C0392B;
+  --food-chicken: #D4A017;
+  --plate-dog: #5B7B9A;
+  --plate-cat: #7B9A7B;
+}
