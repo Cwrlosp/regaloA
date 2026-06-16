@@ -55,33 +55,35 @@ export function createStage1(): StageModule {
   }
 
   function selectFood(food: FoodId) {
+    if (state.completed) return;
     state.selected = food;
     renderState();
   }
 
   function placeSelectedFood(plate: PlateId) {
+    if (state.completed) return;
+
     const selected = state.selected;
     if (!selected) return;
 
-    const occupyingFood = (Object.keys(state.foodLocation) as FoodId[]).find(
-      food => state.foodLocation[food] === plate && food !== selected
-    );
+    const occupyingFood = getFoodOnPlate(plate, selected);
 
     state.foodLocation[selected] = plate;
-    state.reaction[plate] = CORRECT[selected] === plate ? 'happy' : 'confused';
 
     if (occupyingFood) {
+      // Regla de reemplazo: la comida que estaba en ese plato no desaparece;
+      // vuelve a quedar seleccionada para que la jugadora la mande al otro plato.
       state.foodLocation[occupyingFood] = 'tray';
       state.selected = occupyingFood;
     } else {
       state.selected = null;
     }
 
+    syncAnimalReactionsWithPlates();
+
     const bothCorrect = state.foodLocation.bone === 'dog' && state.foodLocation.chicken === 'cat';
-    if (bothCorrect && !state.completed) {
+    if (bothCorrect) {
       state.completed = true;
-      state.reaction.dog = 'happy';
-      state.reaction.cat = 'happy';
       window.setTimeout(() => ctx?.emit(GAME_EVENTS.STAGE1_COMPLETE), 900);
       // Temporal durante Stage 1 aislado: queda logueado en consola.
       // Cuando exista Stage 2, el stage-manager escuchará este evento y hará goTo('stage2').
@@ -89,6 +91,25 @@ export function createStage1(): StageModule {
     }
 
     renderState();
+  }
+
+  function getFoodOnPlate(plate: PlateId, exceptFood?: FoodId): FoodId | null {
+    return (Object.keys(state.foodLocation) as FoodId[]).find(
+      food => food !== exceptFood && state.foodLocation[food] === plate
+    ) ?? null;
+  }
+
+  function syncAnimalReactionsWithPlates() {
+    for (const plate of ['dog', 'cat'] as PlateId[]) {
+      const food = getFoodOnPlate(plate);
+      if (!food) {
+        state.reaction[plate] = 'idle';
+      } else if (CORRECT[food] === plate) {
+        state.reaction[plate] = 'happy';
+      } else {
+        state.reaction[plate] = 'confused';
+      }
+    }
   }
 
   function buildDOM() {
